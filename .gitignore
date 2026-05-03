@@ -1,0 +1,36 @@
+# python stuff
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# node / vite
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# editors / os
+.vscode/
+.idea/
+.qodo/
+.DS_Store
+Thumbs.db
+
+# logs + env
+*.log
+.env
+.env.*
+!.env.example
+
+# misc
+coverage/
+.coverage
+*.tmp
