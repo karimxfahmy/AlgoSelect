@@ -14,6 +14,7 @@ Problem types supported right now:
     - routing       (single-source shortest path on a non-negative graph)
     - sorting
     - search        (membership + index lookup on a sorted array)
+    - exponent      (compute base^exp for an integer exponent)
 
 Quality:
     - exact         must be the optimum
@@ -34,7 +35,7 @@ from typing import Any, Literal
 # data shapes
 # ---------------------------------------------------------------------------
 
-ProblemType = Literal["knapsack", "routing", "sorting", "search"]
+ProblemType = Literal["knapsack", "routing", "sorting", "search", "exponent"]
 Quality = Literal["exact", "approximate", "best-effort"]
 
 
@@ -82,6 +83,10 @@ BRUTE_FORCE_KNAPSACK_LIMIT = 20
 BRUTE_FORCE_ROUTING_LIMIT = 8
 BRUTE_FORCE_SORT_LIMIT = 8
 
+# below this exponent the recursion overhead of fast_exponent costs more
+# than the multiplications it saves. naive_exponent wins for tiny exp.
+NAIVE_EXPONENT_THRESHOLD = 4
+
 # "very small" time budget — below this we lean greedy/D&C aggressively
 TINY_BUDGET_MS = 50
 
@@ -106,6 +111,8 @@ def select(spec: ProblemSpec) -> Selection:
         return _select_sorting(spec)
     if spec.problem_type == "search":
         return _select_search(spec)
+    if spec.problem_type == "exponent":
+        return _select_exponent(spec)
 
     # shouldn't happen — Pydantic / Literal will normally catch this earlier
     raise ValueError(f"unknown problem type: {spec.problem_type!r}")
@@ -321,6 +328,54 @@ def _select_sorting(spec: ProblemSpec) -> Selection:
     )
 
 
+def _select_exponent(spec: ProblemSpec) -> Selection:
+    # for the exponent family `n` is the exponent itself (the size that
+    # actually drives the cost). keeps the ProblemSpec uniform.
+    trace: list[DecisionStep] = []
+    trace.append(DecisionStep(
+        question="What is the problem type?",
+        answer="exponent",
+        branch="exponent",
+    ))
+
+    if spec.n < NAIVE_EXPONENT_THRESHOLD:
+        trace.append(DecisionStep(
+            question=f"Is the exponent tiny (< {NAIVE_EXPONENT_THRESHOLD})?",
+            answer=f"yes (exp={spec.n})",
+            branch="tiny-exponent",
+        ))
+        return Selection(
+            algorithm="naive_exponent",
+            justification=(
+                f"Exponent is tiny (exp={spec.n}). Repeated multiplication "
+                f"runs in well under a microsecond and avoids the recursion "
+                f"overhead of fast exponentiation."
+            ),
+            expected_complexity="O(exp)",
+            quality_guarantee="exact",
+            trace=trace,
+        )
+
+    trace.append(DecisionStep(
+        question=f"Is the exponent tiny (< {NAIVE_EXPONENT_THRESHOLD})?",
+        answer=f"no (exp={spec.n})",
+        branch="big-enough",
+    ))
+    return Selection(
+        algorithm="fast_exponent",
+        justification=(
+            f"With exp={spec.n} we want the O(log exp) algorithm. Fast "
+            f"exponentiation halves the exponent each recursive call, "
+            f"squaring the partial result and multiplying by the base when "
+            f"the exponent bit is odd. Sub-problems do not overlap, so this "
+            f"is textbook divide & conquer."
+        ),
+        expected_complexity="O(log exp)",
+        quality_guarantee="exact",
+        trace=trace,
+    )
+
+
 def _select_search(spec: ProblemSpec) -> Selection:
     trace: list[DecisionStep] = []
     trace.append(DecisionStep(
@@ -375,6 +430,8 @@ def _brute_force_path(spec: ProblemSpec, *, reason: str) -> Selection:
         "routing": ("brute_force_routing", "O(n!)"),
         "sorting": ("brute_force_sort", "O(n!)"),
         "search": ("brute_force_search", "O(n)"),
+        # for exponent the "brute force" baseline is the naive linear loop
+        "exponent": ("naive_exponent", "O(exp)"),
     }
     algo, complexity = family_to_algo[spec.problem_type]
     return Selection(
