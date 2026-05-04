@@ -10,6 +10,7 @@ Hard ceilings (also enforced by the selector):
     - routing:    nodes <= 8 (n! permutations of visit order — TSP-style)
     - search:     n <= 1000 (linear scan, basically free)
     - sorting:    n <= 8     (try every permutation, mostly a teaching tool)
+    - exponent:   exp <= 1_000_000 (linear repeated multiplication)
 
 Anything bigger and we refuse — the engine should not have routed here.
 """
@@ -181,6 +182,47 @@ def linear_search(arr: list[int], target: int) -> AlgoResult:
 # ---------------------------------------------------------------------------
 # sorting — try every permutation. ridiculous, but it's a real brute force.
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# exponent — naive repeated multiplication. the obvious O(n) baseline
+# ---------------------------------------------------------------------------
+
+def naive_exponent(base: float, exp: int) -> AlgoResult:
+    # negative exp -> compute the positive power, flip at the end
+    if exp < 0:
+        flip = True
+        exp = -exp
+    else:
+        flip = False
+
+    if exp > 1_000_000:
+        # at this point even the linear loop starts to drag. fast_exponent
+        # would handle it in microseconds; refuse here to keep things honest.
+        raise ValueError("naive exponent capped at exp=1_000_000")
+
+    states = 0
+    result = 1.0
+
+    with Timer() as t:
+        for _ in range(exp):
+            result *= base
+            states += 1
+        if flip:
+            result = 1.0 / result
+
+    return AlgoResult(
+        algorithm="naive_exponent",
+        problem_type="exponent",
+        solution={"result": result, "base": base, "exp": exp if not flip else -exp},
+        value=float(result),
+        runtime_ms=t.ms,
+        trace={
+            "states_evaluated": states,
+            "warning": "Linear in exp; fast exponentiation does it in O(log exp).",
+        },
+        note="Multiplies one factor at a time — the obvious O(n) baseline.",
+    )
+
 
 def permutation_sort(arr: list[int]) -> AlgoResult:
     n = len(arr)

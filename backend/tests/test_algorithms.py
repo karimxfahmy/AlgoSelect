@@ -100,6 +100,18 @@ def test_fast_exponent_negative():
 
 # ---------- brute force ----------
 
+def test_naive_and_fast_exponent_agree():
+    # both should give the same answer; fast_exponent should be no slower
+    nv = brute_force.naive_exponent(2, 20)
+    fx = divide_conquer.fast_exponent(2, 20)
+    assert nv.solution["result"] == fx.solution["result"] == 1048576
+
+
+def test_naive_exponent_negative():
+    res = brute_force.naive_exponent(2, -4)
+    assert abs(res.solution["result"] - 0.0625) < 1e-9
+
+
 def test_brute_force_routing_matches_dijkstra():
     g = {
         "nodes": ["A", "B", "C", "D"],
