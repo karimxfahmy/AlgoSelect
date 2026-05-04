@@ -1,7 +1,7 @@
 // top-level layout. holds the active problem spec, kicks off backend calls,
 // and lays out the four panels: input on the left, results on the right.
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { api } from './api'
 import ProblemInput from './components/ProblemInput'
 import RecommendationCard from './components/RecommendationCard'
@@ -50,12 +50,13 @@ export default function App() {
   })
   const [solveResp, setSolveResp] = useState(null)
   const [experiment, setExperiment] = useState(null)
+  // snapshot of the payload that was actually sent to the backend, kept
+  // separate from the live spec so dragging the slider doesn't cause the
+  // SolutionView to re-render against a half-built payload. this was the
+  // root cause of the slider feeling sluggish.
+  const [lastRunPayload, setLastRunPayload] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
-
-  // payload is derived, not stored — re-computed whenever spec changes.
-  // keeps the UI in sync without an extra useEffect.
-  const payload = useMemo(() => buildPayload(spec), [spec])
 
   // wraps setSpec so changing the problem type also bounces n back to a
   // sane default for that family. without this the slider can sit at a
@@ -69,8 +70,10 @@ export default function App() {
 
   const onRun = useCallback(async () => {
     setBusy(true); setError(null); setExperiment(null)
+    const p = buildPayload(spec)
+    setLastRunPayload(p)
     try {
-      const resp = await api.solve(spec, payload)
+      const resp = await api.solve(spec, p)
       setSolveResp(resp)
     } catch (e) {
       setError(e.message)
@@ -78,23 +81,25 @@ export default function App() {
     } finally {
       setBusy(false)
     }
-  }, [spec, payload])
+  }, [spec])
 
   const onExperiment = useCallback(async () => {
     setBusy(true); setError(null)
+    const p = buildPayload(spec)
+    setLastRunPayload(p)
     try {
-      const exp = await api.experiment(spec.problem_type, payload)
+      const exp = await api.experiment(spec.problem_type, p)
       setExperiment(exp)
       // also refresh the recommendation card so the user sees what would
       // have been picked if they'd hit "Run" instead.
-      const sel = await api.select(spec, payload)
+      const sel = await api.select(spec, p)
       setSolveResp({ selection: sel, result: null, error: null })
     } catch (e) {
       setError(e.message)
     } finally {
       setBusy(false)
     }
-  }, [spec, payload])
+  }, [spec])
 
   // also pull the result currently shown on the right (single-run preferred,
   // otherwise the top-ranked experiment row)
@@ -152,7 +157,7 @@ export default function App() {
             selection={solveResp?.selection}
             runtimeMs={activeResult?.runtime_ms}
           />
-          <SolutionView result={activeResult} payload={payload} />
+          <SolutionView result={activeResult} payload={lastRunPayload} />
           <ComparisonTable experiment={experiment} />
         </div>
       </main>
