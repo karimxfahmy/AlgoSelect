@@ -50,3 +50,9 @@ export function searchSample(n) {
   const target = Math.floor(n / 2) * 2
   return { array: arr, target }
 }
+
+export function exponentSample(n) {
+  // base 2 keeps the numbers easy to eyeball (powers of two are recognisable).
+  // n drives the exponent — we just rename it so the API gets what it expects.
+  return { base: 2, exp: n }
+}

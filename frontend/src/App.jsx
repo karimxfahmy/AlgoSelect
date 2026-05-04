@@ -9,7 +9,7 @@ import SolutionView from './components/SolutionView'
 import ComparisonTable from './components/ComparisonTable'
 import DecisionFlow from './components/DecisionFlow'
 import {
-  knapsackSample, routingSample, sortingSample, searchSample,
+  knapsackSample, routingSample, sortingSample, searchSample, exponentSample,
 } from './samples'
 
 
@@ -21,6 +21,7 @@ function buildPayload(spec) {
     case 'routing':  return { graph: routingSample(spec.n) }
     case 'sorting':  return { array: sortingSample(spec.n) }
     case 'search':   return searchSample(spec.n)
+    case 'exponent': return exponentSample(spec.n)
     default: return {}
   }
 }
@@ -33,6 +34,7 @@ const DEFAULT_N = {
   routing: 6,
   sorting: 30,
   search: 20,
+  exponent: 10,
 }
 
 
