@@ -3,6 +3,16 @@
 // and a couple of toggles for the per-family flags (negative weights,
 // already sorted, force brute force).
 
+// per-family slider bounds. exponent goes higher so the user can actually
+// see fast_exponent pull ahead of the naive loop.
+function sliderRange(type) {
+  switch (type) {
+    case 'routing':  return { min: 3,  max: 12 }
+    case 'exponent': return { min: 0,  max: 100000 }
+    default:         return { min: 2,  max: 200 }
+  }
+}
+
 export default function ProblemInput({ spec, onChange, onRun, onExperiment, busy }) {
   // helper to keep the parent's state update tidy
   const set = (patch) => onChange({ ...spec, ...patch })
@@ -23,19 +33,20 @@ export default function ProblemInput({ spec, onChange, onRun, onExperiment, busy
           <option value="routing">Routing (shortest paths)</option>
           <option value="sorting">Sorting</option>
           <option value="search">Search</option>
+          <option value="exponent">Exponent (b^e)</option>
         </select>
       </label>
 
-      {/* input size */}
+      {/* input size — exponent renames it because that's what `n` means there */}
       <label className="block">
         <div className="flex justify-between text-sm text-slate-400">
-          <span>Input size n</span>
+          <span>{spec.problem_type === 'exponent' ? 'Exponent (e)' : 'Input size n'}</span>
           <span className="text-slate-200">{spec.n}</span>
         </div>
         <input
           type="range"
-          min={spec.problem_type === 'routing' ? 3 : 2}
-          max={spec.problem_type === 'routing' ? 12 : 200}
+          min={sliderRange(spec.problem_type).min}
+          max={sliderRange(spec.problem_type).max}
           value={spec.n}
           onChange={(e) => set({ n: Number(e.target.value) })}
           className="w-full mt-1"
@@ -46,6 +57,7 @@ export default function ProblemInput({ spec, onChange, onRun, onExperiment, busy
           {spec.problem_type === 'routing' && 'brute force capped at 8 nodes'}
           {spec.problem_type === 'sorting' && 'brute force capped at n=8'}
           {spec.problem_type === 'search' && 'binary search needs sorted input'}
+          {spec.problem_type === 'exponent' && 'naive: O(e); fast: O(log e)'}
         </p>
       </label>
 
