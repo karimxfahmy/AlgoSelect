@@ -2,7 +2,9 @@
 // purely SVG — no graph layout library needed since it's always a chain
 // of nodes (one per question) ending in the chosen algorithm.
 
-export default function DecisionFlow({ selection }) {
+import { memo } from 'react'
+
+function DecisionFlowImpl({ selection }) {
   if (!selection || !selection.trace || selection.trace.length === 0) return null
 
   const steps = selection.trace
@@ -96,3 +98,5 @@ export default function DecisionFlow({ selection }) {
     </div>
   )
 }
+
+export default memo(DecisionFlowImpl)

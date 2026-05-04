@@ -1,6 +1,8 @@
 // shows the chosen algorithm + a one-paragraph justification.
 // designed to be glanceable — heading, then the small print.
 
+import { memo } from 'react'
+
 const ALGO_LABELS = {
   knapsack_dp: 'Dynamic Programming — 0/1 Knapsack',
   brute_force_knapsack: 'Brute Force — Subset Enumeration',
@@ -15,7 +17,7 @@ const ALGO_LABELS = {
   unsupported: 'No fitting algorithm available',
 }
 
-export default function RecommendationCard({ selection, runtimeMs }) {
+function RecommendationCardImpl({ selection, runtimeMs }) {
   if (!selection) return null
   const label = ALGO_LABELS[selection.algorithm] || selection.algorithm
 
@@ -49,3 +51,5 @@ export default function RecommendationCard({ selection, runtimeMs }) {
     </div>
   )
 }
+
+export default memo(RecommendationCardImpl)

@@ -1,6 +1,7 @@
 // renders the actual algorithm output. each problem family gets its own
 // little sub-component; the wrapper just dispatches on problem_type.
 
+import { memo } from 'react'
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -11,7 +12,7 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 
-export default function SolutionView({ result, payload }) {
+function SolutionViewImpl({ result, payload }) {
   if (!result) return null
   const t = result.problem_type
 
@@ -38,6 +39,11 @@ export default function SolutionView({ result, payload }) {
     </div>
   )
 }
+
+
+// memo wrapper — `result` and `payload` are reference-stable between runs,
+// so this component should skip re-rendering while the slider is dragged.
+export default memo(SolutionViewImpl)
 
 
 // ---------- knapsack ----------

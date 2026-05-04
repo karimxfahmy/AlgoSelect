@@ -1,7 +1,9 @@
 // experiment-mode results table. one row per algorithm, ranked best-first.
 // shows runtime, value, approximation ratio, and any skipped reasons.
 
-export default function ComparisonTable({ experiment }) {
+import { memo } from 'react'
+
+function ComparisonTableImpl({ experiment }) {
   if (!experiment) return null
   const { ranked, problem_type, best_value } = experiment
 
@@ -66,6 +68,9 @@ export default function ComparisonTable({ experiment }) {
     </div>
   )
 }
+
+export default memo(ComparisonTableImpl)
+
 
 // sorting/search use length / index as "value" which isn't very meaningful —
 // hide it when it doesn't add information.
