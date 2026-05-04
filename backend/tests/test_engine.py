@@ -57,6 +57,17 @@ def test_search_sorted_picks_binary():
     assert sel.algorithm == "binary_search"
 
 
+def test_exponent_default_picks_fast():
+    sel = select(ProblemSpec(problem_type="exponent", n=10, time_budget_ms=100))
+    assert sel.algorithm == "fast_exponent"
+
+
+def test_exponent_tiny_picks_naive():
+    # below the threshold the recursion overhead isn't worth it
+    sel = select(ProblemSpec(problem_type="exponent", n=2, time_budget_ms=100))
+    assert sel.algorithm == "naive_exponent"
+
+
 def test_force_brute_force_wins():
     sel = select(ProblemSpec(
         problem_type="knapsack", n=200, time_budget_ms=10000,
@@ -104,6 +115,14 @@ def test_run_experiment_skips_brute_force_when_too_big():
     })
     skipped = [r for r in out["ranked"] if r.get("skipped")]
     assert any(r["algorithm"] == "brute_force_knapsack" for r in skipped)
+
+
+def test_run_experiment_exponent_agrees():
+    out = run_experiment("exponent", {"base": 3, "exp": 12})
+    finished = [r for r in out["ranked"] if not r.get("skipped")]
+    # both algorithms should produce the same number (3^12 = 531441)
+    assert len({r["solution"]["result"] for r in finished}) == 1
+    assert finished[0]["solution"]["result"] == 531441
 
 
 def test_run_experiment_routing_matches_between_algos():
