@@ -1,6 +1,7 @@
 // thin wrapper around the FastAPI backend.
-// hardcoded base url for local dev. swap to VITE_API_BASE when we deploy.
-const BASE = 'http://127.0.0.1:8000/api'
+// uses VITE_API_BASE when set (production builds), falls back to the local
+// dev backend so `npm run dev` works without any env file.
+const BASE = (import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000') + '/api'
 
 async function post(path, body) {
   const res = await fetch(`${BASE}${path}`, {
