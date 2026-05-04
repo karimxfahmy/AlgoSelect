@@ -25,6 +25,16 @@ function buildPayload(spec) {
   }
 }
 
+// each family has its own comfortable starting size. when the user flips
+// the dropdown we reset to this so we don't accidentally feed a 200-node
+// graph to the routing sampler (which only labels A..Z anyway).
+const DEFAULT_N = {
+  knapsack: 8,
+  routing: 6,
+  sorting: 30,
+  search: 20,
+}
+
 
 export default function App() {
   const [spec, setSpec] = useState({
@@ -44,6 +54,16 @@ export default function App() {
   // payload is derived, not stored — re-computed whenever spec changes.
   // keeps the UI in sync without an extra useEffect.
   const payload = useMemo(() => buildPayload(spec), [spec])
+
+  // wraps setSpec so changing the problem type also bounces n back to a
+  // sane default for that family. without this the slider can sit at a
+  // value the new family doesn't support.
+  const updateSpec = useCallback((next) => {
+    if (next.problem_type !== spec.problem_type) {
+      next = { ...next, n: DEFAULT_N[next.problem_type] ?? next.n }
+    }
+    setSpec(next)
+  }, [spec.problem_type])
 
   const onRun = useCallback(async () => {
     setBusy(true); setError(null); setExperiment(null)
@@ -104,7 +124,7 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6">
         <div className="space-y-4">
           <ProblemInput
-            spec={spec} onChange={setSpec}
+            spec={spec} onChange={updateSpec}
             onRun={onRun} onExperiment={onExperiment}
             busy={busy}
           />
