@@ -69,6 +69,20 @@ def test_solve_unsupported_returns_clean_error():
     assert body["error"] is not None
 
 
+def test_solve_exponent():
+    r = client.post("/api/solve", json={
+        "spec": {
+            "problem_type": "exponent",
+            "n": 10, "time_budget_ms": 100, "quality": "exact",
+        },
+        "payload": {"base": 2, "exp": 10},
+    })
+    assert r.status_code == 200
+    body = r.json()
+    assert body["selection"]["algorithm"] == "fast_exponent"
+    assert body["result"]["solution"]["result"] == 1024
+
+
 def test_experiment_routing_ranks():
     r = client.post("/api/experiment", json={
         "problem_type": "routing",

@@ -41,6 +41,7 @@ def list_algorithms() -> dict[str, list[str]]:
         "routing":  ["dijkstra_greedy", "brute_force_routing"],
         "sorting":  ["merge_sort", "brute_force_sort"],
         "search":   ["binary_search", "brute_force_search"],
+        "exponent": ["fast_exponent", "naive_exponent"],
     }
 
 

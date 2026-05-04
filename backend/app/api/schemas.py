@@ -19,8 +19,10 @@ from pydantic import BaseModel, Field
 
 class ProblemSpecModel(BaseModel):
     """The bit the selector cares about — independent of payload shape."""
-    problem_type: Literal["knapsack", "routing", "sorting", "search"]
-    n: int = Field(ge=0, le=10_000, description="input size")
+    problem_type: Literal["knapsack", "routing", "sorting", "search", "exponent"]
+    # for exponent the engine treats `n` as the exponent value itself.
+    # the upper bound is generous so users can stress-test fast_exponent.
+    n: int = Field(ge=0, le=1_000_000, description="input size (exponent for exponent type)")
     time_budget_ms: int = Field(ge=0, le=600_000, description="acceptable wait")
     quality: Literal["exact", "approximate", "best-effort"] = "best-effort"
     has_negative_weights: bool = False
@@ -64,6 +66,11 @@ class SearchPayload(BaseModel):
     target: int
 
 
+class ExponentPayload(BaseModel):
+    base: float
+    exp: int
+
+
 # ---------------------------------------------------------------------------
 # request envelopes
 # ---------------------------------------------------------------------------
@@ -79,7 +86,7 @@ class SolveRequest(BaseModel):
 
 
 class ExperimentRequest(BaseModel):
-    problem_type: Literal["knapsack", "routing", "sorting", "search"]
+    problem_type: Literal["knapsack", "routing", "sorting", "search", "exponent"]
     payload: dict[str, Any]
 
 
