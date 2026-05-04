@@ -4,12 +4,13 @@
 // already sorted, force brute force).
 
 // per-family slider bounds. exponent goes higher so the user can actually
-// see fast_exponent pull ahead of the naive loop.
+// see fast_exponent pull ahead of the naive loop. step is set so dragging
+// fires a reasonable number of events even on the wide ranges.
 function sliderRange(type) {
   switch (type) {
-    case 'routing':  return { min: 3,  max: 12 }
-    case 'exponent': return { min: 0,  max: 100000 }
-    default:         return { min: 2,  max: 200 }
+    case 'routing':  return { min: 3,  max: 12,     step: 1   }
+    case 'exponent': return { min: 0,  max: 100000, step: 100 }
+    default:         return { min: 2,  max: 200,    step: 1   }
   }
 }
 
@@ -47,6 +48,7 @@ export default function ProblemInput({ spec, onChange, onRun, onExperiment, busy
           type="range"
           min={sliderRange(spec.problem_type).min}
           max={sliderRange(spec.problem_type).max}
+          step={sliderRange(spec.problem_type).step}
           value={spec.n}
           onChange={(e) => set({ n: Number(e.target.value) })}
           className="w-full mt-1"
