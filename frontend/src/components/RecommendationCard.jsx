@@ -10,6 +10,8 @@ const ALGO_LABELS = {
   brute_force_sort: 'Brute Force — Permutation Sort',
   binary_search: 'Divide & Conquer — Binary Search',
   brute_force_search: 'Brute Force — Linear Search',
+  fast_exponent: 'Divide & Conquer — Fast Exponentiation',
+  naive_exponent: 'Brute Force — Repeated Multiplication',
   unsupported: 'No fitting algorithm available',
 }
 

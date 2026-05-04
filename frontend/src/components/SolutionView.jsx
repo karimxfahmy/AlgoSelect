@@ -28,6 +28,7 @@ export default function SolutionView({ result, payload }) {
       {t === 'routing'  && <RoutingView result={result} />}
       {t === 'sorting'  && <SortingView result={result} payload={payload} />}
       {t === 'search'   && <SearchView result={result} payload={payload} />}
+      {t === 'exponent' && <ExponentView result={result} payload={payload} />}
 
       {result.note && (
         <p className="text-xs text-slate-500 italic border-t border-slate-800 pt-3">
@@ -229,6 +230,60 @@ function SearchView({ result, payload }) {
       </div>
     </div>
   )
+}
+
+
+// ---------- exponent ----------
+
+function ExponentView({ result, payload }) {
+  const { result: value, base, exp } = result.solution
+  const trace = result.trace || {}
+  // fast_exponent records the recursion `levels`, naive_exponent records
+  // a single `states_evaluated` count. handle both.
+  const levels = trace.levels || []
+  const states = trace.states_evaluated
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-2 text-center text-sm">
+        <Stat label="Base" value={base} />
+        <Stat label="Exponent" value={exp} />
+        <Stat label="Result" value={formatBig(value)} accent="text-emerald-400" />
+      </div>
+
+      {/* recursion trace for fast_exponent */}
+      {levels.length > 0 && (
+        <div>
+          <div className="text-slate-500 text-xs mb-1">
+            Recursion trace (depth {trace.recursion_depth})
+          </div>
+          <div className="bg-slate-950/40 rounded p-2 text-xs font-mono space-y-0.5 max-h-48 overflow-auto">
+            {levels.map((lvl, i) => (
+              <div key={i} className="text-slate-300">
+                <span className="text-slate-500">depth {lvl.depth}:</span>{' '}
+                {formatBig(lvl.base)}^{lvl.exp}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* state count for naive_exponent */}
+      {states !== undefined && (
+        <div className="text-xs text-slate-400">
+          Multiplications performed: <span className="text-slate-200">{states}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// big numbers are easier to read with a thousands separator,
+// but very big floats fall back to exponential notation
+function formatBig(x) {
+  if (typeof x !== 'number') return String(x)
+  if (Math.abs(x) > 1e15) return x.toExponential(3)
+  return Number.isInteger(x) ? x.toLocaleString() : x.toString()
 }
 
 
