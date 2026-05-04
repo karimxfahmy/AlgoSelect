@@ -70,6 +70,16 @@ def run_one(algorithm: str, payload: dict[str, Any]) -> AlgoResult:
             arr=payload["array"], target=payload["target"]
         )
 
+    if algorithm == "fast_exponent":
+        return divide_conquer.fast_exponent(
+            base=payload["base"], exp=payload["exp"]
+        )
+
+    if algorithm == "naive_exponent":
+        return brute_force.naive_exponent(
+            base=payload["base"], exp=payload["exp"]
+        )
+
     # the selector occasionally returns "unsupported" (e.g. negative-weight
     # routing). callers must check for that before getting here.
     raise ValueError(f"unknown or unsupported algorithm: {algorithm!r}")
@@ -87,6 +97,7 @@ _FAMILY_ALGOS: dict[str, list[str]] = {
     "routing": ["dijkstra_greedy", "brute_force_routing"],
     "sorting": ["merge_sort", "brute_force_sort"],
     "search":  ["binary_search", "brute_force_search"],
+    "exponent": ["fast_exponent", "naive_exponent"],
 }
 
 
@@ -172,6 +183,7 @@ _BRUTE_FORCE_LIMITS = {
     # linear search has no real cap, but keep it bounded so the UI doesn't
     # show a 100k-row scan in the table
     "brute_force_search":   ("array", 100_000),
+    "naive_exponent":       ("exp", 1_000_000),
 }
 
 
@@ -185,6 +197,8 @@ def _is_applicable(algorithm: str, payload: dict[str, Any]) -> bool:
         return len(payload.get("graph", {}).get("nodes", [])) <= cap
     if key == "array":
         return len(payload.get("array", [])) <= cap
+    if key == "exp":
+        return abs(int(payload.get("exp", 0))) <= cap
     return True
 
 
